@@ -17,30 +17,12 @@ from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
 from src.navigation import get_train_exterior_path, get_models_path, get_train_path, get_data_path
 from src.preprocessing.augment_image import augment_data
+from src.utils import star_onehot_encode
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-# model
-
-def onehot_encode(classes, class_indices):
+def load_images(img_height, img_width, train_path, skip_deserialize=False):
     """
-
-    :param classes:
-    :param class_indices:
-    :return:
-    """
-    # one hot encode
-    onehot_encoded = list()
-    for value in classes:
-        letter = [0 for _ in range(len(class_indices))]
-        letter[value] = 1
-        onehot_encoded.append(letter)
-
-    return np.array(onehot_encoded)
-
-def load_images(img_height, img_width, train_path):
-    """
-
     :param img_height:
     :param img_width:
     :param train_path:
@@ -48,29 +30,20 @@ def load_images(img_height, img_width, train_path):
     """
     labels = os.listdir(train_path)
     #label are 1star, ..., 5star. Image files are group into 5 folders, with folder name = star number 
-    labels = [p for p in labels if not p.endswith('jpg')]
-    num = 0
-    label2id = {}
-    for label in labels:
-        label2id[label] = num
-        num += 1
-    id2label = {v: k for k, v in label2id.items()}
-    print("label2id : ", label2id)
+    labels = [p for p in labels if p.endswith('star')]
 
-    train_img = []
-    train_label = []
     hotelid_image_mapping = pd.DataFrame(columns=['image_serialized', 'star'])
 
     for label in labels:
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
-        temp_star = label2id[label]
+        temp_star = label[0] #the first char of '5star' is 5
 
         for image_filename in image_filenames:
             temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
             #image serialization
             temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
-            temp_hotelid = image_filename[0 : image_filename.find('_')]
+            temp_hotelid = int(image_filename[0 : image_filename.find('_')])
             new_row = pd.DataFrame([[temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[temp_hotelid])
             hotelid_image_mapping = hotelid_image_mapping.append(new_row)
             #train_img.append(temp_img)
@@ -78,6 +51,16 @@ def load_images(img_height, img_width, train_path):
     
     #shuffle image orders
     hotelid_image_mapping = hotelid_image_mapping.sample(frac=1)
+    
+    if (True==skip_deserialize):
+        return None, None, hotelid_image_mapping
+    else:
+        X_train, y_train = deserialize_image(hotelid_image_mapping, img_height, img_width)
+        return X_train, y_train, hotelid_image_mapping
+
+def deserialize_image(hotelid_image_mapping, img_height, img_width):
+    train_img = list()
+    train_label = []
     
     #image deserialization
     for temp_img in hotelid_image_mapping['image_serialized']:
@@ -88,10 +71,9 @@ def load_images(img_height, img_width, train_path):
     X_train = preprocess_input(train_img)
     #train_label = np.array(train_label)
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
-    hotelid_sequence = hotelid_image_mapping.index.values
-    y_train = onehot_encode(train_label, label2id)
-    
-    return X_train, y_train, label2id, id2label, hotelid_sequence
+    #hotelid_sequence = hotelid_image_mapping.index.values
+    y_train = star_onehot_encode(train_label)
+    return X_train, y_train
 
 def resnet50_model(num_classes):
     """
@@ -104,9 +86,9 @@ def resnet50_model(num_classes):
     x = Dense(num_classes, activation='softmax')(x)
     model = Model(model.input, x)
     
-    # Train all layers
-    for layer in model.layers:
-        layer.trainable = True
+    # Train last a few layers
+    for layer in model.layers[:-30]:
+        layer.trainable = False
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', metrics.AUC()])
     return model
@@ -191,8 +173,8 @@ if __name__ == '__main__':
     batch_size = 32
     epochs = 100
 
-    X, Y, label2id, id2label, _ = load_images(img_height, img_width, train_path)
-    num_classes = len(label2id)
+    X, Y, _ = load_images(img_height, img_width, train_path)
+    num_classes = 5 # five star categories
 
     model = resnet50_model(num_classes)
 
