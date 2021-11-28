@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras import Sequential, optimizers
 from tensorflow.keras.layers import Dense, LeakyReLU
-from src.utils import star_onehot_encode
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from src.utils import star_onehot_encode, get_models_path
 
 def get_structured_data_path():
     """
@@ -78,7 +79,13 @@ def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model.compile(optimizer=optmz, loss='categorical_crossentropy', metrics=['accuracy'])
     
     # fit the model
-    history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size, verbose=1)
+    ckpt_path = os.path.join(get_models_path(), 'structured.h5')
+    model.load_weights(ckpt_path)
+    checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
+    EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
+
+    history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size,  
+                        callbacks=[checkpointer], verbose=1)
     
     # evaluate the model
     _, train_acc = model.evaluate(x_train, y_train, verbose=0)
@@ -105,11 +112,9 @@ def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
 def DNN_model(input_shape):
      # define model
     model = Sequential()
-    model.add(Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', input_shape=input_shape))
-    model.add(Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal'))
-    model.add(Dense(16, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal'))
-    model.add(Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'pre_output_layer'))
-    model.add(Dense(5, activation='softmax'))
+    model.add(Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', input_shape=input_shape, name='meta_dense1'))
+    model.add(Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='meta_dense2'))
+    model.add(Dense(5, activation='softmax', name='meta_softmax'))
         
     return model
 

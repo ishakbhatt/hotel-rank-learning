@@ -3,11 +3,34 @@ import csv
 import shutil
 import boto3
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 """
 Model output utilities.
 """
+def load_image_uri(train_path):
+    labels = os.listdir(train_path)
+    labels = [p for p in labels if p.endswith('star')]
+    image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', 'star'])
+    
+    for label in labels:
+        label_path = os.path.join(train_path, label)
+        image_filenames = os.listdir(label_path)
+        star = label[0] # first char of '5star' is 5
 
+        for image_filename in image_filenames:
+            if(is_corrupted(image_filename, star) == True):
+                print("Skipping corrupted file ", image_filename, " from ", star, " stars...")
+                continue
+            hotelid = int(image_filename[0 : image_filename.find('_')])
+            image_uri = image_uri.append({'hotelid':hotelid, 'image_uri':os.path.join(label_path, image_filename), 'star':star}, ignore_index=True)
+    
+    # shuffle image orders
+    image_uri = image_uri.sample(frac=1)
+    train_image_uri, test_image_uri = train_test_split(image_uri, test_size=0.2, random_state=0)
+    return train_image_uri, test_image_uri
+    
 def star_onehot_encode(stars):
     """
     :param stars: 1D array
