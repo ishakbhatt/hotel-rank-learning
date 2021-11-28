@@ -183,7 +183,7 @@ if __name__ == '__main__':
     history = model.fit_generator(train_generator, validation_data = train_generator,
                     steps_per_epoch = train_generator.n//train_generator.batch_size,
                     validation_steps = valid_generator.n//valid_generator.batch_size,
-                    epochs=epochs, callbacks=[checkpointer], verbose=1)
+                    epochs=epochs, callbacks=[checkpointer, early_stopping], verbose=1)
     breakpoint()
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])

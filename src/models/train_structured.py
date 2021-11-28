@@ -75,17 +75,17 @@ def train_linear_model(x_train, y_train, x_test):
 def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model = DNN_model((x_train.shape[1],))
     # compile the model
-    optmz = optimizers.Adam(learning_rate=0.0002, epsilon=1e-8)
+    optmz = optimizers.Adam(learning_rate=0.001, epsilon=1e-8)
     model.compile(optimizer=optmz, loss='categorical_crossentropy', metrics=['accuracy'])
     
     # fit the model
     ckpt_path = os.path.join(get_models_path(), 'structured.h5')
     model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
-    EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
+    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
 
     history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size,  
-                        callbacks=[checkpointer], verbose=1)
+                        callbacks=[checkpointer, early_stopping], verbose=1)
     
     # evaluate the model
     _, train_acc = model.evaluate(x_train, y_train, verbose=0)
