@@ -1,11 +1,15 @@
 import csv
 import os
+import sys
 import time
 import numpy as np
-import matplotlib.pyplot as pyplot
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
+from multiprocessing import Pool, cpu_count
 from tensorflow.keras import metrics, optimizers
 from tensorflow.keras.applications.resnet import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -14,98 +18,9 @@ from tensorflow.keras.layers import Dropout, Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-from src.utils import load_image_uri
-#from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
-#from src.preprocessing.augment_image import augment_data
+from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-results = []
-
-def star_onehot_encode(stars):
-    """
-
-    :param stars: 1D array
-    :return: one-hot encoded star ratings
-    """
-    # one hot encode
-    num_class = 5 #from 1 star to 5 stars
-    onehot_encoded = list()
-    for star in stars:
-        encoded = np.zeros(num_class)
-        encoded[star-1] = 1
-        onehot_encoded.append(encoded)
-
-    return np.array(onehot_encoded)
-
-def is_corrupted(filename, star):
-    corrupted_path = get_corrupted_path()
-    corrupted_list = []
-    file = open(os.path.join(corrupted_path, star+"star"+".csv"), "r")
-    csv_reader = csv.reader(file, delimiter=',')
-    for row in csv_reader:
-        corrupted_list.append(row)
-    if filename in corrupted_list[0]:
-        return True
-    return False
-
-def get_data_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/")
-    data_path = os.path.join(os.getcwd())
-    print(data_path)
-    os.chdir("../src/models")
-
-    return data_path
-
-def get_train_path():
-    """
-    Return the path to training data directories.
-    :return: train_path
-    """
-    os.chdir("../../data/train/")
-    train_path = os.path.join(os.getcwd())
-    print(train_path)
-    os.chdir("../../src/models")
-
-    return train_path
-
-def get_models_path():
-    """
-    Return the models path which stores the model checkpoint at a frequency.
-    :return: models_path
-    """
-    os.chdir("../../data/models/")
-    models_path = os.path.join(os.getcwd())
-    print(models_path)
-    os.chdir("../../src/models")
-
-    return models_path
-
-def get_corrupted_path():
-    """
-    Return the path to directory containing csvs of corrupted data.
-    :return: corrupted
-    """
-    os.chdir("../../data/corrupted")
-    corrupted = os.path.join(os.getcwd())
-    os.chdir("../../src/models")
-
-    return corrupted
-
-def get_train_exterior_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/train/exterior")
-    exterior_path = os.path.join(os.getcwd())
-    print(exterior_path)
-    os.chdir("../../../src/models")
-
-    return exterior_path
 
 def resnet50_model(num_classes):
     """
@@ -177,7 +92,7 @@ if __name__ == '__main__':
     # training begin
     b_start = time.time()
     ckpt_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
-    model.load_weights(ckpt_path)
+    #model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=5)
     
@@ -190,22 +105,21 @@ if __name__ == '__main__':
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
-
     # plot loss during training
-    pyplot.subplot(211)
-    pyplot.title('Loss')
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
+    plt.subplot(211)
+    plt.title('Loss')
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
  
     # plot accuracy during training
-    pyplot.subplot(212)
-    pyplot.title('Accuracy')
-    pyplot.plot(history.history['accuracy'], label='train')
-    pyplot.plot(history.history['val_accuracy'], label='test')
-    pyplot.legend()
-    pyplot.tight_layout()
-    pyplot.show()
+    plt.subplot(212)
+    plt.title('Accuracy')
+    plt.plot(history.history['accuracy'], label='train')
+    plt.plot(history.history['val_accuracy'], label='test')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
  
     # measure accuracy and F1 score 
     yhat_classes = model.predict_generator(test_generator, steps = len(test_generator.filenames))
@@ -221,6 +135,5 @@ if __name__ == '__main__':
     # confusion matrix
     matrix = confusion_matrix(y_true, yhat_classes)
     print(matrix)
-
     
     print("Total used time : {} s.".format(time.time()-b_start))
