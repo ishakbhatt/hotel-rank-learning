@@ -1,6 +1,7 @@
 import os
 import csv
 import shutil
+import boto3
 import numpy as np
 
 """
@@ -73,9 +74,10 @@ def get_corrupted_path():
     Return the path to directory containing csvs of corrupted data.
     :return: corrupted
     """
-    os.chdir("../../data/train/corrupted")
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
+    os.chdir("../../data/corrupted")
     corrupted = os.path.join(os.getcwd())
-    os.chdir("../../../src/models")
+    os.chdir("../../src/" + working_dir)
 
     return corrupted
 
@@ -84,6 +86,7 @@ def get_img_url_data_directory():
     Return the URL data directory.
     :return: img_url_data_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     # change directory
     os.chdir("../../url_data/image_urls")
 
@@ -91,7 +94,7 @@ def get_img_url_data_directory():
     img_url_data_path = os.path.join(os.getcwd())
     print(img_url_data_path)
 
-    os.chdir("../../src/preprocessing")
+    os.chdir("../../src/" + working_dir)
 
     return img_url_data_path
 
@@ -100,6 +103,7 @@ def get_temp_dir():
     Return the temp directory which stores temporary labeled packages.
     :return: temp_data_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     # change directory
     os.chdir("../../temp")
 
@@ -107,7 +111,7 @@ def get_temp_dir():
     temp_data_path = os.path.join(os.getcwd())
     print(temp_data_path)
 
-    os.chdir("../src/preprocessing")
+    os.chdir("../src/" + working_dir)
 
     return temp_data_path
 
@@ -117,10 +121,11 @@ def get_train_path():
     Return the path to training data directories.
     :return: train_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     os.chdir("../../data/train/")
     train_path = os.path.join(os.getcwd())
     print(train_path)
-    os.chdir("../../src/models")
+    os.chdir("../../src/" + working_dir)
 
     return train_path
 
@@ -129,10 +134,11 @@ def get_models_path():
     Return the models path which stores the model checkpoint at a frequency.
     :return: models_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     os.chdir("../../data/models/")
     models_path = os.path.join(os.getcwd())
     print(models_path)
-    os.chdir("../../src/models")
+    os.chdir("../../src/" + working_dir)
 
     return models_path
 
@@ -141,22 +147,24 @@ def get_train_exterior_path():
     Return the path to exterior training data.
     :return:
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     os.chdir("../../data/train/exterior")
     exterior_path = os.path.join(os.getcwd())
     print(exterior_path)
-    os.chdir("../../../src/models")
+    os.chdir("../../../src/" + working_dir)
 
     return exterior_path
 
 def get_data_path():
     """
     Return the path to exterior training data.
-    :return:
+    :return: data_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     os.chdir("../../data/")
     data_path = os.path.join(os.getcwd())
     print(data_path)
-    os.chdir("../src/models")
+    os.chdir("../src/" + working_dir)
 
     return data_path
 
@@ -165,15 +173,15 @@ def get_structured_data_path():
     Return the path to structured data.
     :return: structured_data_path
     """
+    working_dir = os.path.basename(os.path.normpath(os.getcwd()))
     os.chdir("../../data/url_data/structured_hotel_data")
     structured_data_path = os.path.join(os.getcwd())
-    os.chdir("../../../src/models/")
+    os.chdir("../../../src/" + working_dir)
     return structured_data_path
 
 """
 Utilities for training data.
 """
-
 def is_corrupted(filename, star):
     corrupted_path = get_corrupted_path()
     corrupted_list = []
