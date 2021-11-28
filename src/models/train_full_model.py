@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Input, Dense, Concatenate, LeakyReLU
 from tensorflow.keras.applications.resnet import ResNet50
@@ -57,16 +56,16 @@ if __name__ == '__main__':
     input_DNN = Input(shape=(metaX_train.shape[1]))
     
     CNN_base = ResNet50(weights='imagenet', pooling='avg', include_top=False)
-    CNN_dense1 = Dense(512, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='cnn_layer1')(CNN_base.output)
-    CNN_dense2 = Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='cnn_layer2')(CNN_dense1)
-    CNN_dense3 = Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='cnn_layer3')(CNN_dense2)
-    CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='cnn_layer4')(CNN_dense3)
+    CNN_dense1 = Dense(512, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense1')(CNN_base.output)
+    CNN_dense2 = Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense2')(CNN_dense1)
+    CNN_dense3 = Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense3')(CNN_dense2)
+    CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense4')(CNN_dense3)
     
     #dnn_base = Sequential()
-    dnn_layer1 = Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'dnn_layer1', input_shape=(metaX.shape[1],))(input_DNN)
-    dnn_layer2 = (Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'dnn_layer2'))(dnn_layer1)
-    dnn_layer3 = (Dense(16, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'dnn_layer3'))(dnn_layer2)
-    dnn_layer4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'dnn_layer4')(dnn_layer3)
+    dnn_layer1 = Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense1', input_shape=(metaX.shape[1],))(input_DNN)
+    dnn_layer2 = (Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense2'))(dnn_layer1)
+    dnn_layer3 = (Dense(16, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense3'))(dnn_layer2)
+    dnn_layer4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense4')(dnn_layer3)
 
     
     #cnn_model = Model(inputs=CNN_base.inputs, outputs=CNN_dense4)
@@ -84,7 +83,6 @@ if __name__ == '__main__':
     
     full_model = Model(inputs=[input_DNN, CNN_base.inputs], outputs=[output])
     
-    breakpoint()
     full_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     full_model.fit([metaX_train, imageX_train], Y_train,
                   validation_data=([metaX_val, imageX_val], Y_val),
