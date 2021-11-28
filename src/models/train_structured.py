@@ -26,7 +26,7 @@ def load_metadata(filename):
     #shuffle
     raw_structured_data = raw_structured_data.sample(frac=1)
     # input
-    x1 = raw_structured_data[["openyear", "numReviewers", "roomRating", "serviceRating",
+    x1 = raw_structured_data[["numReviewers", "roomRating", "serviceRating",
                             "value4moneyRating", "locatioRating", "roomquantity",
                             "minArea", "isStarValidated", "order_cnt", "roomnight_cnt",
                             "avg_room_price", "avg_person_price", "maxprice", "minprice",
@@ -35,7 +35,7 @@ def load_metadata(filename):
                             "pic_restaurant_ratio", "pic_leisure_ratio", "pic_service_ratio",
                             "is_adr2_adjusted", "is_adr3_adjusted",
                             "is_adr4_adjusted", "is_adr5_adjusted"]]
-    x2 = raw_structured_data[["renovationyear", "gym", "executive_lounge",
+    x2 = raw_structured_data[["openyear", "renovationyear", "gym", "executive_lounge",
                             "indoor_swimming_pool", "bathrobe", "laundry_service", "X24h_frontdesk",
                             "conference_hall", "luggage_storage", "roomcleaneddaily", "outdoor_swimming_pool"]]
     hotelids = raw_structured_data[["hotelid"]]
