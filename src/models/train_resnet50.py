@@ -16,97 +16,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-#from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
+from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
 #from src.preprocessing.augment_image import augment_data
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-results = []
 
-def star_onehot_encode(stars):
-    """
-
-    :param stars: 1D array
-    :return: one-hot encoded star ratings
-    """
-    # one hot encode
-    num_class = 5 #from 1 star to 5 stars
-    onehot_encoded = list()
-    for star in stars:
-        encoded = np.zeros(num_class)
-        encoded[star-1] = 1
-        onehot_encoded.append(encoded)
-
-    return np.array(onehot_encoded)
-
-def is_corrupted(filename, star):
-    corrupted_path = get_corrupted_path()
-    corrupted_list = []
-    file = open(os.path.join(corrupted_path, star+"star"+".csv"), "r")
-    csv_reader = csv.reader(file, delimiter=',')
-    for row in csv_reader:
-        corrupted_list.append(row)
-    if filename in corrupted_list[0]:
-        return True
-    return False
-
-def get_data_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/")
-    data_path = os.path.join(os.getcwd())
-    print(data_path)
-    os.chdir("../src/models")
-
-    return data_path
-
-def get_train_path():
-    """
-    Return the path to training data directories.
-    :return: train_path
-    """
-    os.chdir("../../data/train/")
-    train_path = os.path.join(os.getcwd())
-    print(train_path)
-    os.chdir("../../src/models")
-
-    return train_path
-
-def get_models_path():
-    """
-    Return the models path which stores the model checkpoint at a frequency.
-    :return: models_path
-    """
-    os.chdir("../../data/models/")
-    models_path = os.path.join(os.getcwd())
-    print(models_path)
-    os.chdir("../../src/models")
-
-    return models_path
-
-def get_corrupted_path():
-    """
-    Return the path to directory containing csvs of corrupted data.
-    :return: corrupted
-    """
-    os.chdir("../../data/corrupted")
-    corrupted = os.path.join(os.getcwd())
-    os.chdir("../../src/models")
-
-    return corrupted
-
-def get_train_exterior_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/train/exterior")
-    exterior_path = os.path.join(os.getcwd())
-    print(exterior_path)
-    os.chdir("../../../src/models")
-
-    return exterior_path
 
 def load_images(img_height, img_width, train_path, skip_deserialize=False):
     """
@@ -123,10 +37,6 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
 
     idx=0
     for label in labels:
-        #process_pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        #with 
-        #hotel_image_mapping 
-        #args = )
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
         temp_star = label[0] # first char of '5star' is 5
@@ -142,8 +52,6 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
             new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
             hotelid_image_mapping = hotelid_image_mapping.append(new_row)
             idx += 1
-            #train_img.append(temp_img)
-            #train_label.append(label2id[label])
     
     # shuffle image orders
     hotelid_image_mapping = hotelid_image_mapping.sample(frac=1)
@@ -155,24 +63,30 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
         return X_train, y_train, hotelid_image_mapping
 
 def deserialize_image(hotelid_image_mapping, img_height, img_width):
-
-    #train_img = list()
+    global parallel_deserialization
     X_train = list()
     train_label = []
     
-    #train_label = np.array(train_label)
+    
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
     y_train = star_onehot_encode(train_label)
     
-    #image deserialization
+    # image deserialization
     print("image deserialization...")
     num_images = hotelid_image_mapping['image_serialized'].count()
-    for idx in range(num_images):
+    def parallel_deserialization(idx):
+        print("Deserializing for image: ", idx)
         temp_img = hotelid_image_mapping.at[idx, 'image_serialized']
         temp_deserialized_img = np.frombuffer(temp_img, dtype='uint8').reshape(img_height, img_width, 3)
-        X_train.append(preprocess_input(np.array(temp_deserialized_img)).astype('float16'))
-        #after deserizlization of each image, drop the serialized image to release memory
+        X_train.append(np.array(temp_deserialized_img))
         hotelid_image_mapping.drop(index=idx, inplace=True)
+        return X_train
+
+    # Distribute deserialization across cores
+    from multiprocessing import Pool, cpu_count
+    pool = Pool(cpu_count())
+    X_train_list = pool.map(parallel_deserialization, range(num_images))
+    X_train = pd.concat(X_train_list)
 
     X_train = np.asarray(X_train, dtype='float16')
     return X_train, y_train
@@ -206,9 +120,9 @@ if __name__ == '__main__':
     train_path = get_train_exterior_path()
     model_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
 
-    img_height = 225
-    img_width = 300
-    batch_size = 32
+    img_height = 210
+    img_width = 280
+    batch_size = 26
     epochs = 10
 
     X, Y, _ = load_images(img_height, img_width, train_path)
