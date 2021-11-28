@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Input, Dense, Concatenate, LeakyReLU
+from tensorflow.keras.layers import Input, Dense, Concatenate, LeakyReLU, Dropout
 from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.models import Model
 from sklearn import metrics
@@ -56,9 +55,11 @@ if __name__ == '__main__':
     input_DNN = Input(shape=(metaX_train.shape[1]))
     
     CNN_base = ResNet50(weights='imagenet', pooling='avg', include_top=False)
-    CNN_dense1 = Dense(512, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense1')(CNN_base.output)
+    CNN_dropout = Dropout(0.3, name = 'image_dropout')(CNN_base.output)
+    CNN_dense1 = Dense(512, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense1')(CNN_dropout)
     CNN_dense2 = Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense2')(CNN_dense1)
     CNN_dense3 = Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense3')(CNN_dense2)
+    CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense4')(CNN_dense3)
     CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense4')(CNN_dense3)
     
     #dnn_base = Sequential()
