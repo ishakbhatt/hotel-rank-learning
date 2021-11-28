@@ -12,7 +12,7 @@ Model output utilities.
 def load_image_uri(train_path):
     labels = os.listdir(train_path)
     labels = [p for p in labels if p.endswith('star')]
-    image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', 'star'])
+    image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', '1star','2star','3star','4star','5star'])
     
     for label in labels:
         label_path = os.path.join(train_path, label)
@@ -24,8 +24,10 @@ def load_image_uri(train_path):
                 print("Skipping corrupted file ", image_filename, " from ", star, " stars...")
                 continue
             hotelid = int(image_filename[0 : image_filename.find('_')])
-            image_uri = image_uri.append({'hotelid':hotelid, 'image_uri':os.path.join(label_path, image_filename), 'star':star}, ignore_index=True)
-    
+            new_row_left = pd.DataFrame([[hotelid, os.path.join(label_path, image_filename)]], columns=['hotelid', 'image_uri'])
+            new_row_right = pd.DataFrame(star_onehot_encode([int(star)]), columns=['1star','2star','3star','4star','5star'])
+            new_row = pd.concat([new_row_left, new_row_right], axis=1)
+            image_uri = image_uri.append(new_row, ignore_index=True)
     # shuffle image orders
     image_uri = image_uri.sample(frac=1)
     train_image_uri, test_image_uri = train_test_split(image_uri, test_size=0.15, random_state=0)

@@ -134,7 +134,7 @@ if __name__ == '__main__':
     img_height = 225
     img_width = 300
     batch_size = 32
-    epochs = 1
+    epochs = 20
     num_classes = 5 # five star categories
     
     os.makedirs(os.path.join(get_data_path(), "models"), exist_ok=True)
@@ -147,27 +147,28 @@ if __name__ == '__main__':
     test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     train_generator = train_datagen.flow_from_dataframe(
         dataframe=train_image_uri,
-        x_col="image_uri", y_col="star",
+        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="categorical",
+        class_mode="raw",
         shuffle=False
     )
     
     valid_generator = valid_datagen.flow_from_dataframe(
         dataframe=valid_image_uri,
-        x_col="image_uri", y_col="star",
+        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="categorical",
+        class_mode="raw",
         shuffle=False
     )
     
     test_generator = test_datagen.flow_from_dataframe(
         dataframe=test_image_uri,
-        x_col="image_uri", y_col="star",
+        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
         target_size=(img_height, img_width),
         batch_size=batch_size,
+        class_mode="raw",
         shuffle=False,
     )
     
