@@ -28,8 +28,9 @@ def load_image_uri(train_path):
     
     # shuffle image orders
     image_uri = image_uri.sample(frac=1)
-    train_image_uri, test_image_uri = train_test_split(image_uri, test_size=0.2, random_state=0)
-    return train_image_uri, test_image_uri
+    train_image_uri, test_image_uri = train_test_split(image_uri, test_size=0.15, random_state=0)
+    train_image_uri, valid_image_uri = train_test_split(train_image_uri, test_size=0.05/(1-0.15), random_state=0)
+    return train_image_uri, valid_image_uri, test_image_uri
     
 def star_onehot_encode(stars):
     """

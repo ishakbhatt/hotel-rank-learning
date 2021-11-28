@@ -6,7 +6,7 @@ import matplotlib.pyplot as pyplot
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
-from tensorflow.keras import metrics
+from tensorflow.keras import metrics, optimizers
 from tensorflow.keras.applications.resnet import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Model
@@ -124,7 +124,8 @@ def resnet50_model(num_classes):
     for layer in model.layers[:-19]:
         layer.trainable = False
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', metrics.AUC()])
+    optmz = optimizers.Adam(learning_rate=0.001, epsilon=1e-8)
+    model.compile(optimizer=optmz, loss='categorical_crossentropy', metrics=['accuracy', metrics.AUC()])
     return model
 
 # processing
@@ -139,9 +140,10 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(get_data_path(), "models"), exist_ok=True)
     train_path = get_train_exterior_path()
     
-    train_image_uri, test_image_uri = load_image_uri(train_path)
+    train_image_uri, valid_image_uri, test_image_uri = load_image_uri(train_path)
     
-    train_datagen = ImageDataGenerator(validation_split=0.1, preprocessing_function=preprocess_input)
+    train_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+    valid_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     train_generator = train_datagen.flow_from_dataframe(
         dataframe=train_image_uri,
@@ -149,17 +151,15 @@ if __name__ == '__main__':
         target_size=(img_height, img_width),
         batch_size=batch_size,
         class_mode="categorical",
-        subset='training',
         shuffle=False
     )
     
-    valid_generator = train_datagen.flow_from_dataframe(
-        dataframe=train_image_uri,
+    valid_generator = valid_datagen.flow_from_dataframe(
+        dataframe=valid_image_uri,
         x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
         class_mode="categorical",
-        subset='validation',
         shuffle=False
     )
     
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     ckpt_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
     model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
-    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
+    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=5)
     
     history = model.fit_generator(train_generator, validation_data = train_generator,
                     steps_per_epoch = train_generator.n//train_generator.batch_size,

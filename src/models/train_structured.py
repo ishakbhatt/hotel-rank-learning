@@ -75,7 +75,7 @@ def train_linear_model(x_train, y_train, x_test):
 def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model = DNN_model((x_train.shape[1],))
     # compile the model
-    optmz = optimizers.Adam(learning_rate=0.001, epsilon=1e-8)
+    optmz = optimizers.Adam(learning_rate=0.0002, epsilon=1e-8)
     model.compile(optimizer=optmz, loss='categorical_crossentropy', metrics=['accuracy'])
     
     # fit the model
