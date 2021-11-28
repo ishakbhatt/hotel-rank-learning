@@ -3,6 +3,10 @@ import os
 import time
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as pyplot
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import metrics
 from tensorflow.keras.applications.resnet import preprocess_input
@@ -229,4 +233,36 @@ if __name__ == '__main__':
                         callbacks=[checkpointer],
                         verbose=1)
 
+        # plot loss during training
+    pyplot.subplot(211)
+    pyplot.title('Loss')
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+ 
+    # plot accuracy during training
+    pyplot.subplot(212)
+    pyplot.title('Accuracy')
+    pyplot.plot(history.history['accuracy'], label='train')
+    pyplot.plot(history.history['val_accuracy'], label='test')
+    pyplot.legend()
+    pyplot.tight_layout()
+    pyplot.show()
+ 
+    # measure accuracy and F1 score 
+    yhat_classes = model.predict(X_val)
+    yhat_classes = np.argmax(yhat_classes,axis=1)
+    y_true=np.argmax(Y_val,axis=1)
+           
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_true, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_true, yhat_classes, average='weighted')
+    print('Weighted F1 score: %f' % f1)
+    # confusion matrix
+    matrix = confusion_matrix(y_true, yhat_classes)
+    print(matrix)
+
+    
     print("Total used time : {} s.".format(time.time()-b_start))
