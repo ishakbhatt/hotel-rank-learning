@@ -147,7 +147,7 @@ if __name__ == '__main__':
                         callbacks=[checkpointer],
                         verbose=1)
 
-        # plot loss during training
+    # plot loss during training
     pyplot.subplot(211)
     pyplot.title('Loss')
     pyplot.plot(history.history['loss'], label='train')

@@ -63,28 +63,28 @@ if __name__ == '__main__':
     test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     train_generator = train_datagen.flow_from_dataframe(
         dataframe=train_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
+        class_mode="categorical",
         shuffle=False
     )
     
     valid_generator = valid_datagen.flow_from_dataframe(
         dataframe=valid_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
+        class_mode="categorical",
         shuffle=False
     )
     
     test_generator = test_datagen.flow_from_dataframe(
         dataframe=test_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
+        class_mode="categorical",
         shuffle=False,
     )
     
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     # measure accuracy and F1 score 
     yhat_classes = model.predict_generator(test_generator, steps = len(test_generator.filenames))
     yhat_classes = np.argmax(yhat_classes)
-    y_true = np.argmax(test_generator.get_classes(test_image_uri, ["1star","2star","3star","4star","5star"]), axis=1)
+    y_true = np.argmax(test_generator.get_classes(test_image_uri, 'star'), axis=1)
            
     # accuracy: (tp + tn) / (p + n)
     accuracy = accuracy_score(y_true, yhat_classes)
