@@ -56,13 +56,13 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
                 temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
                 temp_hotelid = int(image_filename[0 : image_filename.find('_')])
                 new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
-                return hotelid_image_mapping.append(new_row)
-                idx += 1
+                return new_row
             else:
                 print("Skipping corrupted file ", image_filename, " from ", temp_star, " stars...")
 
         pool = Pool(cpu_count())
-        mapping_list = pool.map(parallel_load_img, image_filenames)
+        mappings = pool.map(parallel_load_img, image_filenames)
+        mapping_list.append(mappings)
     
     # shuffle image orders
     mapping_list_flattened = [item for sublist in mapping_list for item in sublist]

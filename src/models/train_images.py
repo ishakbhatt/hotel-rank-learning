@@ -1,16 +1,9 @@
-import csv
-import os
-import sys
-import time
-import shutil
+import os, sys, time, shutil
 import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
-from multiprocessing import Pool, cpu_count
 from tensorflow.keras import metrics, optimizers
 from tensorflow.keras.applications.resnet import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -20,10 +13,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
 sys.path.append("..")
-from utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri, get_data_path
+from utils import get_train_exterior_path, get_models_path, load_image_uri, get_data_path
 sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+results = []
 
 def resnet50_model(num_classes):
     """
@@ -52,7 +46,7 @@ if __name__ == '__main__':
     img_height = 225
     img_width = 300
     batch_size = 32
-    epochs = 20
+    epochs = 50
     num_classes = 5 # five star categories
     
     os.makedirs(os.path.join(get_data_path(), "models"), exist_ok=True)
@@ -99,11 +93,10 @@ if __name__ == '__main__':
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=5)
     
-    history = model.fit_generator(train_generator, validation_data = train_generator,
+    history = model.fit(train_generator, validation_data = train_generator,
                     steps_per_epoch = train_generator.n//train_generator.batch_size,
                     validation_steps = valid_generator.n//valid_generator.batch_size,
                     epochs=epochs, callbacks=[checkpointer, early_stopping], verbose=1)
-    breakpoint()
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
@@ -139,3 +132,8 @@ if __name__ == '__main__':
     # confusion matrix
     matrix = confusion_matrix(test_generator.classes, y_pred)
     print(matrix)
+<<<<<<< HEAD
+=======
+    
+    print("Total used time : {} s.".format(time.time()-b_start))
+>>>>>>> 5be392ae9cb019eb0a4abf47b2f7c16aa1c2f69b

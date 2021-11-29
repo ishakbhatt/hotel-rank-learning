@@ -11,35 +11,32 @@ from sklearn.model_selection import train_test_split
 Model output utilities.
 """
 def load_image_uri(train_path):
-    global parallel_load_uri
     labels = os.listdir(train_path)
     labels = [p for p in labels if p.endswith('star')]
-    image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', '1star','2star','3star','4star','5star'])
-    img_uri_nested_list = []
-
+    image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', 'star'])
+    #global parallel_load_uri
     for label in labels:
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
         star = label[0] # first char of '5star' is 5
-
-        def parallel_load_uri(image_filename):
-            nonlocal image_uri
+        star_class_indices = str(int(star) - 1) #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
+        #def parallel_load_uri(image_filename):
+        #     nonlocal image_uri
+        for image_filename in image_filenames:
             if(is_corrupted(image_filename, star) == False):
                 hotelid = int(image_filename[0 : image_filename.find('_')])
-                new_row_left = pd.DataFrame([[hotelid, os.path.join(label_path, image_filename)]], columns=['hotelid', 'image_uri'])
-                new_row_right = pd.DataFrame(star_onehot_encode([int(star)]), columns=['1star','2star','3star','4star','5star'])
-                new_row = pd.concat([new_row_left, new_row_right], axis=1)
-                return image_uri.append(new_row, ignore_index=True)
+                image_uri = image_uri.append({'hotelid':hotelid, 'image_uri':os.path.join(label_path, image_filename), 'star':star_class_indices}, ignore_index=True)
             else:
                 print("Skipping corrupted file ", image_filename, " from ", star, " stars...")
+    
+        #pool = Pool(cpu_count())
+        #image_uri_list = pool.map(parallel_load_uri, image_filenames)
+        #img_uri_nested_list.append(image_uri_list)
 
-        pool = Pool(cpu_count())
-        image_uri_list = pool.map(parallel_load_uri, image_filenames)
-        img_uri_nested_list.append(image_uri_list)
+    #image_uri_list = [item for sublist in img_uri_nested_list for item in sublist]
+    #image_uri = pd.concat(image_uri_list)
 
     # shuffle image orders
-    image_uri_list = [item for sublist in img_uri_nested_list for item in sublist]
-    image_uri = pd.concat(image_uri_list)
     image_uri = image_uri.sample(frac=1)
     train_image_uri, test_image_uri = train_test_split(image_uri, test_size=0.15, random_state=0)
     train_image_uri, valid_image_uri = train_test_split(train_image_uri, test_size=0.05/(1-0.15), random_state=0)
