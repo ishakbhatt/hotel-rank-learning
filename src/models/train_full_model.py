@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import numpy as np
 import pandas as pd
@@ -11,7 +12,9 @@ from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.models import Model
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
-from src.utils import get_train_exterior_path, get_data_path
+sys.path.append("..")
+from utils import get_train_exterior_path, get_data_path
+sys.path.remove("..")
 from train_resnet50 import load_images, deserialize_image
 from train_structured import load_metadata, DNN_model
 

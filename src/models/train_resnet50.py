@@ -1,6 +1,7 @@
 import csv
 import os
 import time
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as pyplot
@@ -16,8 +17,10 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
-#from src.preprocessing.augment_image import augment_data
+sys.path.append("..")
+from utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
+#from preprocessing.augment_image import augment_data
+sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as pyplot
@@ -9,7 +10,9 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras import Sequential, optimizers
 from tensorflow.keras.layers import Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
-from src.utils import star_onehot_encode, get_models_path
+sys.path.append("..")
+from utils import star_onehot_encode, get_models_path
+sys.path.remove("..")
 
 def get_structured_data_path():
     """

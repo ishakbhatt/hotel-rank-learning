@@ -19,7 +19,9 @@ from tensorflow.keras.layers import Dropout, Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri, get_data_path
+sys.path.append("..")
+from utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri, get_data_path
+sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
