@@ -108,7 +108,8 @@ if __name__ == '__main__':
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
-    # plot loss during training
+
+ # plot loss during training
     plt.subplot(211)
     plt.title('Loss')
     plt.plot(history.history['loss'], label='train')
@@ -122,23 +123,19 @@ if __name__ == '__main__':
     plt.plot(history.history['val_accuracy'], label='test')
     plt.legend()
     plt.tight_layout()
-    plt.show()
     plt.savefig("CNN_Accuracy_Loss.png")
     shutil.move("CNN_Accuracy_Loss.png", os.path.join(get_data_path(), "analysis", "CNN", "CNN_Accuracy_Loss.png"))
  
     # measure accuracy and F1 score 
-    yhat_classes = model.predict_generator(test_generator, steps = len(test_generator.filenames))
-    yhat_classes = np.argmax(yhat_classes)
-    y_true = np.argmax(test_generator.get_classes(test_image_uri, 'star'), axis=1)
-           
+    Y_pred = model.predict(test_generator)
+    y_pred = np.argmax(Y_pred, axis=1)
+               
     # accuracy: (tp + tn) / (p + n)
-    accuracy = accuracy_score(y_true, yhat_classes)
+    accuracy = accuracy_score(test_generator.classes, y_pred)
     print('Accuracy: %f' % accuracy)
     # f1: 2 tp / (2 tp + fp + fn)
-    f1 = f1_score(y_true, yhat_classes, average='weighted')
+    f1 = f1_score(test_generator.classes, y_pred, average='weighted')
     print('Weighted F1 score: %f' % f1)
     # confusion matrix
-    matrix = confusion_matrix(y_true, yhat_classes)
+    matrix = confusion_matrix(test_generator.classes, y_pred)
     print(matrix)
-    
-    print("Total used time : {} s.".format(time.time()-b_start))
