@@ -1,0 +1,86 @@
+img_height = 225
+img_width = 300
+batch_size = 32
+epochs = 20
+Test loss: 3.3511886596679688
+Test accuracy: 0.47882676124572754
+
+3687/3687 [==============================] - ETA: 0s - loss: 1.1352 - accuracy: 0.4724 - auc: 0.8171
+Epoch 00001: val_loss improved from inf to 1.05709, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1463s 397ms/step - loss: 1.1352 - accuracy: 0.4724 - auc: 0.8171 - val_loss: 1.0571 - val_accuracy: 0.5162 - val_auc: 0.8446
+Epoch 2/20
+3687/3687 [==============================] - ETA: 0s - loss: 1.0697 - accuracy: 0.5059 - auc: 0.8398
+Epoch 00002: val_loss improved from 1.05709 to 0.98162, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1466s 398ms/step - loss: 1.0697 - accuracy: 0.5059 - auc: 0.8398 - val_loss: 0.9816 - val_accuracy: 0.5610 - val_auc: 0.8688
+Epoch 3/20
+3687/3687 [==============================] - ETA: 0s - loss: 1.0053 - accuracy: 0.5411 - auc: 0.8603
+Epoch 00003: val_loss improved from 0.98162 to 0.89247, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1467s 398ms/step - loss: 1.0053 - accuracy: 0.5411 - auc: 0.8603 - val_loss: 0.8925 - val_accuracy: 0.6062 - val_auc: 0.8952
+Epoch 4/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.8930 - accuracy: 0.5967 - auc: 0.8911
+Epoch 00004: val_loss improved from 0.89247 to 0.77304, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1465s 397ms/step - loss: 0.8930 - accuracy: 0.5967 - auc: 0.8911 - val_loss: 0.7730 - val_accuracy: 0.6523 - val_auc: 0.9192
+Epoch 5/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.7234 - accuracy: 0.6832 - auc: 0.9291
+Epoch 00005: val_loss improved from 0.77304 to 0.54080, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1523s 413ms/step - loss: 0.7234 - accuracy: 0.6832 - auc: 0.9291 - val_loss: 0.5408 - val_accuracy: 0.7988 - val_auc: 0.9677
+Epoch 6/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.5265 - accuracy: 0.7773 - auc: 0.9620
+Epoch 00006: val_loss improved from 0.54080 to 0.38792, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1524s 413ms/step - loss: 0.5265 - accuracy: 0.7773 - auc: 0.9620 - val_loss: 0.3879 - val_accuracy: 0.8496 - val_auc: 0.9806
+Epoch 7/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.3798 - accuracy: 0.8466 - auc: 0.9796
+Epoch 00007: val_loss improved from 0.38792 to 0.34934, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1454s 394ms/step - loss: 0.3798 - accuracy: 0.8466 - auc: 0.9796 - val_loss: 0.3493 - val_accuracy: 0.8662 - val_auc: 0.9822
+Epoch 8/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.2876 - accuracy: 0.8870 - auc: 0.9878
+Epoch 00008: val_loss improved from 0.34934 to 0.25738, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1449s 393ms/step - loss: 0.2876 - accuracy: 0.8870 - auc: 0.9878 - val_loss: 0.2574 - val_accuracy: 0.8978 - val_auc: 0.9900
+Epoch 9/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.2275 - accuracy: 0.9134 - auc: 0.9919
+Epoch 00009: val_loss improved from 0.25738 to 0.17913, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1448s 393ms/step - loss: 0.2275 - accuracy: 0.9134 - auc: 0.9919 - val_loss: 0.1791 - val_accuracy: 0.9333 - val_auc: 0.9948
+Epoch 10/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1929 - accuracy: 0.9285 - auc: 0.9938
+Epoch 00010: val_loss improved from 0.17913 to 0.16267, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1449s 393ms/step - loss: 0.1929 - accuracy: 0.9285 - auc: 0.9938 - val_loss: 0.1627 - val_accuracy: 0.9416 - val_auc: 0.9951
+Epoch 11/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1608 - accuracy: 0.9409 - auc: 0.9954
+Epoch 00011: val_loss did not improve from 0.16267
+3687/3687 [==============================] - 1447s 393ms/step - loss: 0.1608 - accuracy: 0.9409 - auc: 0.9954 - val_loss: 0.1666 - val_accuracy: 0.9371 - val_auc: 0.9951
+Epoch 12/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1423 - accuracy: 0.9484 - auc: 0.9962
+Epoch 00012: val_loss improved from 0.16267 to 0.12087, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1448s 393ms/step - loss: 0.1423 - accuracy: 0.9484 - auc: 0.9962 - val_loss: 0.1209 - val_accuracy: 0.9588 - val_auc: 0.9970
+Epoch 13/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1222 - accuracy: 0.9556 - auc: 0.9971
+Epoch 00013: val_loss improved from 0.12087 to 0.09550, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1448s 393ms/step - loss: 0.1222 - accuracy: 0.9556 - auc: 0.9971 - val_loss: 0.0955 - val_accuracy: 0.9660 - val_auc: 0.9982
+Epoch 14/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1099 - accuracy: 0.9611 - auc: 0.9975
+Epoch 00014: val_loss did not improve from 0.09550
+3687/3687 [==============================] - 1447s 392ms/step - loss: 0.1099 - accuracy: 0.9611 - auc: 0.9975 - val_loss: 0.1223 - val_accuracy: 0.9548 - val_auc: 0.9969
+Epoch 15/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.1013 - accuracy: 0.9639 - auc: 0.9978
+Epoch 00015: val_loss did not improve from 0.09550
+3687/3687 [==============================] - 1448s 393ms/step - loss: 0.1013 - accuracy: 0.9639 - auc: 0.9978 - val_loss: 0.1178 - val_accuracy: 0.9588 - val_auc: 0.9972
+Epoch 16/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.0907 - accuracy: 0.9681 - auc: 0.9980
+Epoch 00016: val_loss improved from 0.09550 to 0.09142, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1449s 393ms/step - loss: 0.0907 - accuracy: 0.9681 - auc: 0.9980 - val_loss: 0.0914 - val_accuracy: 0.9690 - val_auc: 0.9980
+Epoch 17/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.0828 - accuracy: 0.9715 - auc: 0.9983
+Epoch 00017: val_loss improved from 0.09142 to 0.06705, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1448s 393ms/step - loss: 0.0828 - accuracy: 0.9715 - auc: 0.9983 - val_loss: 0.0671 - val_accuracy: 0.9750 - val_auc: 0.9993
+Epoch 18/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.0769 - accuracy: 0.9732 - auc: 0.9986
+Epoch 00018: val_loss improved from 0.06705 to 0.06141, saving model to /home/ubuntu/repos/hotel-rank-learning/data/models/resnet50_ResNet50_v1.h5
+3687/3687 [==============================] - 1449s 393ms/step - loss: 0.0769 - accuracy: 0.9732 - auc: 0.9986 - val_loss: 0.0614 - val_accuracy: 0.9793 - val_auc: 0.9989
+Epoch 19/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.0733 - accuracy: 0.9747 - auc: 0.9986
+Epoch 00019: val_loss did not improve from 0.06141
+3687/3687 [==============================] - 1447s 392ms/step - loss: 0.0733 - accuracy: 0.9747 - auc: 0.9986 - val_loss: 0.0881 - val_accuracy: 0.9705 - val_auc: 0.9979
+Epoch 20/20
+3687/3687 [==============================] - ETA: 0s - loss: 0.0681 - accuracy: 0.9762 - auc: 0.9988
+Epoch 00020: val_loss did not improve from 0.06141
+3687/3687 [==============================] - 1449s 393ms/step - loss: 0.0681 - accuracy: 0.9762 - auc: 0.9988 - val_loss: 0.0721 - val_accuracy: 0.9738 - val_auc: 0.9986

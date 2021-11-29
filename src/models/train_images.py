@@ -2,6 +2,7 @@ import csv
 import os
 import sys
 import time
+import shutil
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -18,7 +19,7 @@ from tensorflow.keras.layers import Dropout, Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri
+from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted, load_image_uri, get_data_path
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -120,11 +121,13 @@ if __name__ == '__main__':
     plt.legend()
     plt.tight_layout()
     plt.show()
+    plt.savefig("CNN_Accuracy_Loss.png")
+    shutil.move("CNN_Accuracy_Loss.png", os.path.join(get_data_path(), "analysis", "CNN", "CNN_Accuracy_Loss.png"))
  
     # measure accuracy and F1 score 
     yhat_classes = model.predict_generator(test_generator, steps = len(test_generator.filenames))
     yhat_classes = np.argmax(yhat_classes)
-    y_true = np.argmax(test_generator.get_classes(test_image_uri, 'star'), axis=1)
+    y_true = np.argmax(test_generator.get_classes(test_image_uri, ["1star","2star","3star","4star","5star"]), axis=1)
            
     # accuracy: (tp + tn) / (p + n)
     accuracy = accuracy_score(y_true, yhat_classes)
