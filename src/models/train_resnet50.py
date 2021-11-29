@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as pyplot
+from multiprocessing import Pool, cpu_count
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
@@ -32,6 +33,8 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
     :param train_path:
     :return:
     """
+    global parallel_load_img
+    mapping_list = []
     labels = os.listdir(train_path)
     #label are 1star, ..., 5star. Image files are group into 5 folders, with folder name = star number 
     labels = [p for p in labels if p.endswith('star')]
@@ -44,19 +47,26 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
         image_filenames = os.listdir(label_path)
         temp_star = label[0] # first char of '5star' is 5
 
-        for image_filename in image_filenames:
-            if(is_corrupted(image_filename, temp_star) == True):
+        def parallel_load_img(image_filename):
+            nonlocal idx
+            nonlocal hotelid_image_mapping
+            if(is_corrupted(image_filename, temp_star) == False):      
+                temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
+                # image serialization
+                temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
+                temp_hotelid = int(image_filename[0 : image_filename.find('_')])
+                new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
+                return hotelid_image_mapping.append(new_row)
+                idx += 1
+            else:
                 print("Skipping corrupted file ", image_filename, " from ", temp_star, " stars...")
-                continue            
-            temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
-            # image serialization
-            temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
-            temp_hotelid = int(image_filename[0 : image_filename.find('_')])
-            new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
-            hotelid_image_mapping = hotelid_image_mapping.append(new_row)
-            idx += 1
+
+        pool = Pool(cpu_count())
+        mapping_list = pool.map(parallel_load_img, image_filenames)
     
     # shuffle image orders
+    mapping_list_flattened = [item for sublist in mapping_list for item in sublist]
+    hotelid_image_mapping = pd.concat(mapping_list_flattened)
     hotelid_image_mapping = hotelid_image_mapping.sample(frac=1)
     
     if (skip_deserialize==True):
@@ -69,7 +79,6 @@ def deserialize_image(hotelid_image_mapping, img_height, img_width):
     global parallel_deserialization
     X_train = list()
     train_label = []
-    
     
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
     y_train = star_onehot_encode(train_label)
