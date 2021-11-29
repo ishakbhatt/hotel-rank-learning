@@ -23,7 +23,6 @@ results = []
 
 def star_onehot_encode(stars):
     """
-
     :param stars: 1D array
     :return: one-hot encoded star ratings
     """
@@ -147,28 +146,27 @@ if __name__ == '__main__':
     test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
     train_generator = train_datagen.flow_from_dataframe(
         dataframe=train_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
+        class_mode="categorical",
         shuffle=False
     )
     
     valid_generator = valid_datagen.flow_from_dataframe(
         dataframe=valid_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
+        class_mode="categorical",
         shuffle=False
     )
     
     test_generator = test_datagen.flow_from_dataframe(
         dataframe=test_image_uri,
-        x_col="image_uri", y_col=["1star","2star","3star","4star","5star"],
+        x_col="image_uri", y_col="star",
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode="raw",
         shuffle=False,
     )
     
@@ -185,7 +183,6 @@ if __name__ == '__main__':
                     steps_per_epoch = train_generator.n//train_generator.batch_size,
                     validation_steps = valid_generator.n//valid_generator.batch_size,
                     epochs=epochs, callbacks=[checkpointer, early_stopping], verbose=1)
-    breakpoint()
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
