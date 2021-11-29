@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -10,7 +11,9 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras import Sequential, optimizers
 from tensorflow.keras.layers import Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
-from src.utils import star_onehot_encode, get_models_path
+sys.path.append("..")
+from utils import star_onehot_encode, get_models_path
+sys.path.remove("..")
 
 def get_structured_data_path():
     """
@@ -76,11 +79,12 @@ def train_linear_model(x_train, y_train, x_test):
 def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model = DNN_model((x_train.shape[1],))
     # compile the model
-    optmz = optimizers.Adam(learning_rate=0.0002, epsilon=1e-8)
+    optmz = optimizers.Adam(learning_rate=0.0001, epsilon=1e-8)
     model.compile(optimizer=optmz, loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
     
     # fit the model
     ckpt_path = os.path.join(get_models_path(), 'structured.h5')
+    model.build(x_train.shape)
     model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)

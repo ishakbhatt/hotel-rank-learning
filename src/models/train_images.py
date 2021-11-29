@@ -1,5 +1,4 @@
-import os
-import time
+import os, sys, time, shutil
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
@@ -13,7 +12,9 @@ from tensorflow.keras.layers import Dropout, Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-from src.utils import get_train_exterior_path, get_models_path, get_data_path, load_image_uri
+sys.path.append("..")
+from utils import get_train_exterior_path, get_models_path, load_image_uri, get_data_path
+sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 results = []
@@ -115,6 +116,8 @@ if __name__ == '__main__':
     plt.legend()
     plt.tight_layout()
     plt.show()
+    plt.savefig("CNN_Accuracy_Loss.png")
+    shutil.move("CNN_Accuracy_Loss.png", os.path.join(get_data_path(), "analysis", "CNN", "CNN_Accuracy_Loss.png"))
  
     # measure accuracy and F1 score 
     Y_pred = model.predict(test_generator)

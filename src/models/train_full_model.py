@@ -1,11 +1,20 @@
+import os
+import sys
+import shutil
 import numpy as np
 import pandas as pd
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix
+from matplotlib import pyplot as plt
 from tensorflow.keras.layers import Input, Dense, Concatenate, LeakyReLU, Dropout
 from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.models import Model
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
-from src.utils import get_train_exterior_path
+sys.path.append("..")
+from utils import get_train_exterior_path, get_data_path
+sys.path.remove("..")
 from train_resnet50 import load_images, deserialize_image
 from train_structured import load_metadata, DNN_model
 
@@ -85,7 +94,41 @@ if __name__ == '__main__':
     full_model = Model(inputs=[input_DNN, CNN_base.inputs], outputs=[output])
     
     full_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    full_model.fit([metaX_train, imageX_train], Y_train,
+    history = full_model.fit([metaX_train, imageX_train], Y_train,
                   validation_data=([metaX_val, imageX_val], Y_val),
                   epochs=CNN_epochs, batch_size=batch_size, shuffle=False, verbose=1)
+
+    
+    # plot loss during training
+    plt.subplot(211)
+    plt.title('Loss')
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
+ 
+    # plot accuracy during training
+    plt.subplot(212)
+    plt.title('Accuracy')
+    plt.plot(history.history['accuracy'], label='train')
+    plt.plot(history.history['val_accuracy'], label='test')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    plt.savefig("FullModel_Loss_Accuracy.png")
+    shutil.move("FullModel_Loss_Accuracy.png", os.path.join(get_data_path(), "analysis", "Combined", "FullModel_Loss_Accuracy.png"))
+
+    # measure accuracy and F1 score 
+    yhat_classes = full_model.predict([metaX_val, imageX_val])
+    yhat_classes = np.argmax(yhat_classes, axis=1)
+    y_true = np.argmax(Y_val, axis=1)
+           
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_true, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_true, yhat_classes, average='weighted')
+    print('Weighted F1 score: %f' % f1)
+    # confusion matrix
+    matrix = confusion_matrix(y_true, yhat_classes)
+    print(matrix)
     

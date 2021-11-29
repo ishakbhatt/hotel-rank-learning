@@ -1,9 +1,6 @@
-import csv
-import os
-import time
-import pandas as pd
-import numpy as np
+import csv, os, time, sys, pandas as pd, numpy as np
 import matplotlib.pyplot as pyplot
+from multiprocessing import Pool, cpu_count
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
@@ -16,74 +13,13 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
-#from src.utils import get_train_exterior_path, get_models_path, get_train_path, get_data_path, star_onehot_encode, is_corrupted
-#from src.preprocessing.augment_image import augment_data
+sys.path.append("..")
+from utils import get_train_exterior_path, get_models_path, get_data_path, star_onehot_encode, is_corrupted
+#from preprocessing.augment_image import augment_data
+sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 results = []
-
-def star_onehot_encode(stars):
-    """
-
-    :param stars: 1D array
-    :return: one-hot encoded star ratings
-    """
-    # one hot encode
-    num_class = 5 #from 1 star to 5 stars
-    onehot_encoded = list()
-    for star in stars:
-        encoded = np.zeros(num_class)
-        encoded[star-1] = 1
-        onehot_encoded.append(encoded)
-
-    return np.array(onehot_encoded)
-
-def is_corrupted(filename, star):
-    corrupted_path = get_corrupted_path()
-    corrupted_list = []
-    file = open(os.path.join(corrupted_path, star+"star"+".csv"), "r")
-    csv_reader = csv.reader(file, delimiter=',')
-    for row in csv_reader:
-        corrupted_list.append(row)
-    if filename in corrupted_list[0]:
-        return True
-    return False
-
-def get_data_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/")
-    data_path = os.path.join(os.getcwd())
-    print(data_path)
-    os.chdir("../src/models")
-
-    return data_path
-
-def get_train_path():
-    """
-    Return the path to training data directories.
-    :return: train_path
-    """
-    os.chdir("../../data/train/")
-    train_path = os.path.join(os.getcwd())
-    print(train_path)
-    os.chdir("../../src/models")
-
-    return train_path
-
-def get_models_path():
-    """
-    Return the models path which stores the model checkpoint at a frequency.
-    :return: models_path
-    """
-    os.chdir("../../data/models/")
-    models_path = os.path.join(os.getcwd())
-    print(models_path)
-    os.chdir("../../src/models")
-
-    return models_path
 
 def get_corrupted_path():
     """
@@ -96,18 +32,6 @@ def get_corrupted_path():
 
     return corrupted
 
-def get_train_exterior_path():
-    """
-    Return the path to exterior training data.
-    :return:
-    """
-    os.chdir("../../data/train/exterior")
-    exterior_path = os.path.join(os.getcwd())
-    print(exterior_path)
-    os.chdir("../../../src/models")
-
-    return exterior_path
-
 def load_images(img_height, img_width, train_path, skip_deserialize=False):
     """
     :param img_height:
@@ -115,6 +39,8 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
     :param train_path:
     :return:
     """
+    global parallel_load_img
+    mapping_list = []
     labels = os.listdir(train_path)
     #label are 1star, ..., 5star. Image files are group into 5 folders, with folder name = star number 
     labels = [p for p in labels if p.endswith('star')]
@@ -131,10 +57,20 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
         image_filenames = os.listdir(label_path)
         temp_star = label[0] # first char of '5star' is 5
 
-        for image_filename in image_filenames:
-            if(is_corrupted(image_filename, temp_star) == True):
+        def parallel_load_img(image_filename):
+            nonlocal idx
+            nonlocal hotelid_image_mapping
+            if(is_corrupted(image_filename, temp_star) == False):      
+                temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
+                # image serialization
+                temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
+                temp_hotelid = int(image_filename[0 : image_filename.find('_')])
+                new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
+                return hotelid_image_mapping.append(new_row)
+                idx += 1
+            else:
                 print("Skipping corrupted file ", image_filename, " from ", temp_star, " stars...")
-                continue            
+        
             temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
             # image serialization
             temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
@@ -144,8 +80,13 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
             idx += 1
             #train_img.append(temp_img)
             #train_label.append(label2id[label])
+
+        pool = Pool(cpu_count())
+        mapping_list = pool.map(parallel_load_img, image_filenames)
     
     # shuffle image orders
+    mapping_list_flattened = [item for sublist in mapping_list for item in sublist]
+    hotelid_image_mapping = pd.concat(mapping_list_flattened)
     hotelid_image_mapping = hotelid_image_mapping.sample(frac=1)
     
     if (skip_deserialize==True):
@@ -160,7 +101,6 @@ def deserialize_image(hotelid_image_mapping, img_height, img_width):
     X_train = list()
     train_label = []
     
-    #train_label = np.array(train_label)
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
     y_train = star_onehot_encode(train_label)
     
@@ -204,7 +144,7 @@ if __name__ == '__main__':
     # training begin
     b_start = time.time()
     train_path = get_train_exterior_path()
-    model_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
+    model_path = os.path.join(get_models_path(), 'resnet50.h5')
 
     img_height = 225
     img_width = 300
@@ -233,7 +173,7 @@ if __name__ == '__main__':
                         callbacks=[checkpointer],
                         verbose=1)
 
-        # plot loss during training
+    # plot loss during training
     pyplot.subplot(211)
     pyplot.title('Loss')
     pyplot.plot(history.history['loss'], label='train')
