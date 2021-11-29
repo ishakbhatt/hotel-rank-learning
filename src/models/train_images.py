@@ -45,7 +45,7 @@ if __name__ == '__main__':
     img_height = 225
     img_width = 300
     batch_size = 32
-    epochs = 20
+    epochs = 50
     num_classes = 5 # five star categories
     
     os.makedirs(os.path.join(get_data_path(), "models"), exist_ok=True)
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=5)
     
-    history = model.fit_generator(train_generator, validation_data = train_generator,
+    history = model.fit(train_generator, validation_data = train_generator,
                     steps_per_epoch = train_generator.n//train_generator.batch_size,
                     validation_steps = valid_generator.n//valid_generator.batch_size,
                     epochs=epochs, callbacks=[checkpointer, early_stopping], verbose=1)
@@ -117,18 +117,17 @@ if __name__ == '__main__':
     plt.show()
  
     # measure accuracy and F1 score 
-    yhat_classes = model.predict_generator(test_generator, steps = len(test_generator.filenames))
-    yhat_classes = np.argmax(yhat_classes)
-    y_true = np.argmax(test_generator.get_classes(test_image_uri, 'star'), axis=1)
-           
+    Y_pred = model.predict(test_generator)
+    y_pred = np.argmax(Y_pred, axis=1)
+               
     # accuracy: (tp + tn) / (p + n)
-    accuracy = accuracy_score(y_true, yhat_classes)
+    accuracy = accuracy_score(test_generator.classes, y_pred)
     print('Accuracy: %f' % accuracy)
     # f1: 2 tp / (2 tp + fp + fn)
-    f1 = f1_score(y_true, yhat_classes, average='weighted')
+    f1 = f1_score(test_generator.classes, y_pred, average='weighted')
     print('Weighted F1 score: %f' % f1)
     # confusion matrix
-    matrix = confusion_matrix(y_true, yhat_classes)
+    matrix = confusion_matrix(test_generator.classes, y_pred)
     print(matrix)
     
     print("Total used time : {} s.".format(time.time()-b_start))

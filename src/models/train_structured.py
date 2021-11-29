@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 import matplotlib.pyplot as pyplot
 from sklearn import metrics
 from sklearn.linear_model import LinearRegression
@@ -76,7 +77,7 @@ def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model = DNN_model((x_train.shape[1],))
     # compile the model
     optmz = optimizers.Adam(learning_rate=0.0002, epsilon=1e-8)
-    model.compile(optimizer=optmz, loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=optmz, loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
     
     # fit the model
     ckpt_path = os.path.join(get_models_path(), 'structured.h5')
@@ -126,9 +127,9 @@ if __name__ == "__main__":
 
     #handling null(if any)
     x_train = np.nan_to_num(x_train)
-    y_train = star_onehot_encode(np.nan_to_num(y_train))
+    y_train = np.nan_to_num(y_train-1) #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
     x_test = np.nan_to_num(x_test)
-    y_test = star_onehot_encode(np.nan_to_num(y_test))
+    y_test = np.nan_to_num(y_test-1)
 
     #linear_model = train_linear_model(x_train, y_train, x_test)
     train_DNN_model(x_train, y_train, x_test, y_test, 100, 32)
