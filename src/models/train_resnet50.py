@@ -19,18 +19,7 @@ from utils import get_train_exterior_path, get_models_path, get_data_path, is_co
 sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-results = []
 
-def get_corrupted_path():
-    """
-    Return the path to directory containing csvs of corrupted data.
-    :return: corrupted
-    """
-    os.chdir("../../data/corrupted")
-    corrupted = os.path.join(os.getcwd())
-    os.chdir("../../src/models")
-
-    return corrupted
 
 def load_images(img_height, img_width, train_path, skip_deserialize=False):
     """
@@ -49,10 +38,6 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
 
     idx=0
     for label in labels:
-        #process_pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        #with 
-        #hotel_image_mapping 
-        #args = )
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
         temp_star = label[0] # first char of '5star' is 5
@@ -95,23 +80,29 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
         return X_train, y_train, hotelid_image_mapping
 
 def deserialize_image(hotelid_image_mapping, img_height, img_width):
-
-    #train_img = list()
+    global parallel_deserialization
     X_train = list()
     train_label = []
     
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
     y_train = train_label
     
-    #image deserialization
+    # image deserialization
     print("image deserialization...")
     num_images = hotelid_image_mapping['image_serialized'].count()
-    for idx in range(num_images):
+    def parallel_deserialization(idx):
+        print("Deserializing for image: ", idx)
         temp_img = hotelid_image_mapping.at[idx, 'image_serialized']
         temp_deserialized_img = np.frombuffer(temp_img, dtype='uint8').reshape(img_height, img_width, 3)
-        X_train.append(preprocess_input(np.array(temp_deserialized_img)).astype('float16'))
-        #after deserizlization of each image, drop the serialized image to release memory
+        X_train.append(np.array(temp_deserialized_img))
         hotelid_image_mapping.drop(index=idx, inplace=True)
+        return X_train
+
+    # Distribute deserialization across cores
+    from multiprocessing import Pool, cpu_count
+    pool = Pool(cpu_count())
+    X_train_list = pool.map(parallel_deserialization, range(num_images))
+    X_train = pd.concat(X_train_list)
 
     X_train = np.asarray(X_train, dtype='float16')
     return X_train, y_train
@@ -143,11 +134,11 @@ if __name__ == '__main__':
     # training begin
     b_start = time.time()
     train_path = get_train_exterior_path()
-    model_path = os.path.join(get_models_path(), 'resnet50.h5')
+    model_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
 
-    img_height = 225
-    img_width = 300
-    batch_size = 32
+    img_height = 210
+    img_width = 280
+    batch_size = 26
     epochs = 10
 
     X, Y, _ = load_images(img_height, img_width, train_path)

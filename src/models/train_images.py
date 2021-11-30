@@ -100,7 +100,8 @@ if __name__ == '__main__':
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
-    # plot loss during training
+
+ # plot loss during training
     plt.subplot(211)
     plt.title('Loss')
     plt.plot(history.history['loss'], label='train')
@@ -114,7 +115,6 @@ if __name__ == '__main__':
     plt.plot(history.history['val_accuracy'], label='test')
     plt.legend()
     plt.tight_layout()
-    plt.show()
     plt.savefig("CNN_Accuracy_Loss.png")
     shutil.move("CNN_Accuracy_Loss.png", os.path.join(get_data_path(), "analysis", "CNN", "CNN_Accuracy_Loss.png"))
  
@@ -130,6 +130,5 @@ if __name__ == '__main__':
     print('Weighted F1 score: %f' % f1)
     # confusion matrix
     matrix = confusion_matrix(test_generator.classes, y_pred)
-    print(matrix)
-    
+    print(matrix)  
     print("Total used time : {} s.".format(time.time()-b_start))
