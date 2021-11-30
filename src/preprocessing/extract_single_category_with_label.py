@@ -3,7 +3,7 @@ import csv
 import requests
 import shutil
 import pandas as pd
-from src.navigation import get_img_url_data_directory, get_temp_dir, get_structured_data_dir
+from src.utils import get_img_url_data_directory, get_temp_dir, get_structured_data_dir
 
 def main():
 
