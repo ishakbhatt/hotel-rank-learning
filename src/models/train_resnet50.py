@@ -1,4 +1,4 @@
-import csv, os, time, sys, pandas as pd, numpy as np
+import os, time, sys, pandas as pd, numpy as np, tensorflow as tf
 import matplotlib.pyplot as pyplot
 from multiprocessing import Pool, cpu_count
 from sklearn.metrics import accuracy_score
@@ -14,7 +14,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
 sys.path.append("..")
-from utils import get_train_exterior_path, get_models_path, get_data_path, star_onehot_encode, is_corrupted
+from utils import get_train_exterior_path, get_models_path, get_data_path, is_corrupted
 #from preprocessing.augment_image import augment_data
 sys.path.remove("..")
 
@@ -39,8 +39,8 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
     :param train_path:
     :return:
     """
-    global parallel_load_img
-    mapping_list = []
+    #global parallel_load_img
+    #mapping_list = []
     labels = os.listdir(train_path)
     #label are 1star, ..., 5star. Image files are group into 5 folders, with folder name = star number 
     labels = [p for p in labels if p.endswith('star')]
@@ -56,17 +56,18 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
         temp_star = label[0] # first char of '5star' is 5
-
-        def parallel_load_img(image_filename):
-            nonlocal idx
-            nonlocal hotelid_image_mapping
+        star_class_indices = str(int(temp_star) - 1) #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
+        #def parallel_load_img(image_filename):
+            #nonlocal idx
+            #nonlocal hotelid_image_mapping
+        for image_filename in image_filenames:
             if(is_corrupted(image_filename, temp_star) == False):      
                 temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
                 # image serialization
                 temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
                 temp_hotelid = int(image_filename[0 : image_filename.find('_')])
-                new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
-                return hotelid_image_mapping.append(new_row)
+                new_row = pd.DataFrame([[temp_hotelid, temp_img, star_class_indices]], columns=hotelid_image_mapping.columns, index=[idx])
+                hotelid_image_mapping = hotelid_image_mapping.append(new_row)
                 idx += 1
             else:
                 print("Skipping corrupted file ", image_filename, " from ", temp_star, " stars...")
@@ -78,15 +79,13 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
             new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
             hotelid_image_mapping = hotelid_image_mapping.append(new_row)
             idx += 1
-            #train_img.append(temp_img)
-            #train_label.append(label2id[label])
 
-        pool = Pool(cpu_count())
-        mapping_list = pool.map(parallel_load_img, image_filenames)
+        #pool = Pool(cpu_count())
+        #mapping_list = pool.map(parallel_load_img, image_filenames)
+    #mapping_list_flattened = [item for sublist in mapping_list for item in sublist]
+    #hotelid_image_mapping = pd.concat(mapping_list_flattened)
     
     # shuffle image orders
-    mapping_list_flattened = [item for sublist in mapping_list for item in sublist]
-    hotelid_image_mapping = pd.concat(mapping_list_flattened)
     hotelid_image_mapping = hotelid_image_mapping.sample(frac=1)
     
     if (skip_deserialize==True):
@@ -102,7 +101,7 @@ def deserialize_image(hotelid_image_mapping, img_height, img_width):
     train_label = []
     
     train_label = hotelid_image_mapping['star'].to_numpy(dtype='uint8', copy = True)
-    y_train = star_onehot_encode(train_label)
+    y_train = train_label
     
     #image deserialization
     print("image deserialization...")
@@ -132,7 +131,7 @@ def resnet50_model(num_classes):
     for layer in model.layers[:-19]:
         layer.trainable = False
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', metrics.AUC()])
+    model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy', metrics.AUC()])
     return model
 
 # processing
@@ -155,7 +154,6 @@ if __name__ == '__main__':
     num_classes = 5 # five star categories
 
     model = resnet50_model(num_classes)
-
     X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=0)
 
     early_stopping = EarlyStopping(monitor='val_loss',

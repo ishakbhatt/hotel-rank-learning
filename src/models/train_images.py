@@ -1,5 +1,4 @@
-import os, sys, time, shutil
-import numpy as np
+import os, sys, time, shutil, numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
@@ -89,7 +88,7 @@ if __name__ == '__main__':
     # training begin
     b_start = time.time()
     ckpt_path = os.path.join(get_models_path(), 'resnet50_ResNet50_v1.h5')
-    #model.load_weights(ckpt_path)
+    model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=5)
     

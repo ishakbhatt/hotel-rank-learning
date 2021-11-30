@@ -29,6 +29,12 @@ def load_metadata(filename):
     raw_structured_data = pd.read_csv(os.path.join(get_structured_data_path(), filename))
     #shuffle
     raw_structured_data = raw_structured_data.sample(frac=1)
+    
+    #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
+    for i in range(raw_structured_data["star"].count()):
+        star = str(int(raw_structured_data.at[i, "star"]) - 1)
+        raw_structured_data.at[i, "star"] = star
+    
     # input
     x1 = raw_structured_data[["numReviewers", "roomRating", "serviceRating",
                             "value4moneyRating", "locatioRating", "roomquantity",
@@ -51,7 +57,7 @@ def load_metadata(filename):
 
     # output
     y = raw_structured_data["star"]
-    
+
     return x, y, hotelids
 
 def train_linear_model(x_train, y_train, x_test):
@@ -131,9 +137,9 @@ if __name__ == "__main__":
 
     #handling null(if any)
     x_train = np.nan_to_num(x_train)
-    y_train = np.nan_to_num(y_train-1) #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
+    y_train = np.nan_to_num(y_train)
     x_test = np.nan_to_num(x_test)
-    y_test = np.nan_to_num(y_test-1)
+    y_test = np.nan_to_num(y_test)
 
     #linear_model = train_linear_model(x_train, y_train, x_test)
     train_DNN_model(x_train, y_train, x_test, y_test, 100, 32)

@@ -1,8 +1,4 @@
-import os
-import sys
-import shutil
-import numpy as np
-import pandas as pd
+import os, sys, shutil, numpy as np, pandas as pd, tensorflow as tf
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
@@ -12,8 +8,9 @@ from tensorflow.keras.applications.resnet import ResNet50
 from tensorflow.keras.models import Model
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 sys.path.append("..")
-from utils import get_train_exterior_path, get_data_path
+from utils import get_train_exterior_path, get_data_path, get_models_path
 sys.path.remove("..")
 from train_resnet50 import load_images, deserialize_image
 from train_structured import load_metadata, DNN_model
@@ -47,7 +44,7 @@ def align_model_inputs(hotelid_image_mapping, metaX, meta_hotelids, img_height, 
     
 if __name__ == '__main__':
     img_height = 187
-    img_width = 250 # get this closer to 224
+    img_width = 250
     channels = 3
     batch_size = 32
     DNN_epochs = 30
@@ -64,19 +61,13 @@ if __name__ == '__main__':
     input_DNN = Input(shape=(metaX_train.shape[1]))
     
     CNN_base = ResNet50(weights='imagenet', pooling='avg', include_top=False)
-    CNN_dropout = Dropout(0.3, name = 'image_dropout')(CNN_base.output)
+    CNN_dropout = Dropout(0.4, name = 'image_dropout')(CNN_base.output)
     CNN_dense1 = Dense(512, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense1')(CNN_dropout)
     CNN_dense2 = Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense2')(CNN_dense1)
-    CNN_dense3 = Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense3')(CNN_dense2)
-    CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense4')(CNN_dense3)
-    CNN_dense4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name='image_dense4')(CNN_dense3)
     
     #dnn_base = Sequential()
-    dnn_layer1 = Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense1', input_shape=(metaX.shape[1],))(input_DNN)
-    dnn_layer2 = (Dense(32, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense2'))(dnn_layer1)
-    dnn_layer3 = (Dense(16, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense3'))(dnn_layer2)
-    dnn_layer4 = Dense(8, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense4')(dnn_layer3)
-
+    dnn_layer1 = Dense(128, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense1', input_shape=(metaX.shape[1],))(input_DNN)
+    dnn_layer2 = (Dense(64, activation=LeakyReLU(alpha=0.1), kernel_initializer='he_normal', name = 'meta_dense2'))(dnn_layer1)
     
     #cnn_model = Model(inputs=CNN_base.inputs, outputs=CNN_dense4)
     #dnn_model = Model(inputs=dnn_base.inputs, outputs=dnn_base.get_layer('pre_output_layer'))
@@ -86,16 +77,21 @@ if __name__ == '__main__':
         layer.trainable = False
     
     # Concatenate
-    concat = Concatenate(name='cancat_layer')([CNN_dense4, dnn_layer4])
+    concat = Concatenate(name='cancat_layer')([CNN_dense2, dnn_layer2])
 
     # output layer input_shape=(None, concat.shape[-1])
     output = Dense(units=num_classes, activation='softmax')(concat)
     
     full_model = Model(inputs=[input_DNN, CNN_base.inputs], outputs=[output])
+    full_model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
     
-    full_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    ckpt_path = os.path.join(get_models_path(), 'full_model.h5')
+    #model.load_weights(ckpt_path)
+    checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
+    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
     history = full_model.fit([metaX_train, imageX_train], Y_train,
                   validation_data=([metaX_val, imageX_val], Y_val),
+                  callbacks = [checkpointer, early_stopping],
                   epochs=CNN_epochs, batch_size=batch_size, shuffle=False, verbose=1)
 
     
