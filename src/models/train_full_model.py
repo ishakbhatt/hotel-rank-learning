@@ -86,7 +86,7 @@ if __name__ == '__main__':
     full_model.compile(optimizer='adam', loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
     
     ckpt_path = os.path.join(get_models_path(), 'full_model.h5')
-    model.load_weights(ckpt_path)
+    full_model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
     history = full_model.fit([metaX_train, imageX_train], Y_train,
