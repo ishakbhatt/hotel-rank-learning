@@ -46,7 +46,8 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
             #nonlocal idx
             #nonlocal hotelid_image_mapping
         for image_filename in image_filenames:
-            if(is_corrupted(image_filename, temp_star) == False):      
+            if(is_corrupted(image_filename, temp_star) == False):   
+                print("serializing image ", image_filename, "...")   
                 temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
                 # image serialization
                 temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()

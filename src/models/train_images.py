@@ -45,7 +45,7 @@ if __name__ == '__main__':
     img_height = 225
     img_width = 300
     batch_size = 32
-    epochs = 50
+    epochs = 20
     num_classes = 5 # five star categories
     
     os.makedirs(os.path.join(get_data_path(), "models"), exist_ok=True)
@@ -105,14 +105,14 @@ if __name__ == '__main__':
     plt.subplot(211)
     plt.title('Loss')
     plt.plot(history.history['loss'], label='train')
-    plt.plot(history.history['val_loss'], label='test')
+    plt.plot(history.history['val_loss'], label='val')
     plt.legend()
  
     # plot accuracy during training
     plt.subplot(212)
     plt.title('Accuracy')
     plt.plot(history.history['accuracy'], label='train')
-    plt.plot(history.history['val_accuracy'], label='test')
+    plt.plot(history.history['val_accuracy'], label='val')
     plt.legend()
     plt.tight_layout()
     plt.savefig("CNN_Accuracy_Loss.png")

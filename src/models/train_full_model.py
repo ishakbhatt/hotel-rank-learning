@@ -46,7 +46,7 @@ if __name__ == '__main__':
     img_height = 187
     img_width = 250
     channels = 3
-    batch_size = 32
+    batch_size = 1
     DNN_epochs = 30
     CNN_epochs = 1
     num_classes = 5
@@ -99,14 +99,14 @@ if __name__ == '__main__':
     plt.subplot(211)
     plt.title('Loss')
     plt.plot(history.history['loss'], label='train')
-    plt.plot(history.history['val_loss'], label='test')
+    plt.plot(history.history['val_loss'], label='val')
     plt.legend()
  
     # plot accuracy during training
     plt.subplot(212)
     plt.title('Accuracy')
     plt.plot(history.history['accuracy'], label='train')
-    plt.plot(history.history['val_accuracy'], label='test')
+    plt.plot(history.history['val_accuracy'], label='val')
     plt.legend()
     plt.tight_layout()
     plt.show()
