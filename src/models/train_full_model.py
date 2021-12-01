@@ -42,12 +42,11 @@ def align_model_inputs(hotelid_image_mapping, metaX, meta_hotelids, img_height, 
     return imageX_train, metaX_train, imageX_val, metaX_val, Y_train, Y_val
     
 if __name__ == '__main__':
-    img_height = 187
-    img_width = 250
+    img_height = 225
+    img_width = 300
     channels = 3
     batch_size = 1
-    DNN_epochs = 30
-    CNN_epochs = 1
+    epochs = 50
     num_classes = 5
     
     train_path = get_train_exterior_path()
@@ -91,7 +90,7 @@ if __name__ == '__main__':
     history = full_model.fit([metaX_train, imageX_train], Y_train,
                   validation_data=([metaX_val, imageX_val], Y_val),
                   callbacks = [checkpointer, early_stopping],
-                  epochs=CNN_epochs, batch_size=batch_size, shuffle=False, verbose=1)
+                  epochs=epochs, batch_size=batch_size, shuffle=False, verbose=1)
 
     
     # plot loss during training
