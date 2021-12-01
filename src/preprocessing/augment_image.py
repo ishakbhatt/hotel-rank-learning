@@ -3,9 +3,8 @@ import os
 import random
 import numpy as np
 from PIL import Image, ImageEnhance
-import shutil
 sys.path.append("..")
-from utils import get_train_path, get_train_exterior_path, is_corrupted
+from utils import get_train_exterior_path, is_corrupted
 sys.path.remove("..")
 
 # augmentation

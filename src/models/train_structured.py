@@ -12,7 +12,7 @@ from tensorflow.keras import Sequential, optimizers
 from tensorflow.keras.layers import Dense, LeakyReLU
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 sys.path.append("..")
-from utils import star_onehot_encode, get_models_path
+from utils import get_models_path
 sys.path.remove("..")
 
 def get_structured_data_path():

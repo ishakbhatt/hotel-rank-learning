@@ -1,6 +1,6 @@
 import os, time, sys, pandas as pd, numpy as np, tensorflow as tf
 import matplotlib.pyplot as pyplot
-from multiprocessing import Pool, cpu_count
+#from multiprocessing import Pool, cpu_count
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
@@ -46,7 +46,6 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
             #nonlocal hotelid_image_mapping
         for image_filename in image_filenames:
             if(is_corrupted(image_filename, temp_star) == False):   
-                print("serializing image ", image_filename, "...")   
                 temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
                 # image serialization
                 temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
@@ -56,14 +55,6 @@ def load_images(img_height, img_width, train_path, skip_deserialize=False):
                 idx += 1
             else:
                 print("Skipping corrupted file ", image_filename, " from ", temp_star, " stars...")
-        
-            temp_img = image.load_img(os.path.join(label_path, image_filename), target_size=(img_height, img_width))
-            # image serialization
-            temp_img = image.img_to_array(temp_img).astype('uint8').tobytes()
-            temp_hotelid = int(image_filename[0 : image_filename.find('_')])
-            new_row = pd.DataFrame([[temp_hotelid, temp_img, temp_star]], columns=hotelid_image_mapping.columns, index=[idx])
-            hotelid_image_mapping = hotelid_image_mapping.append(new_row)
-            idx += 1
 
         #pool = Pool(cpu_count())
         #mapping_list = pool.map(parallel_load_img, image_filenames)
@@ -104,10 +95,10 @@ def deserialize_image(hotelid_image_mapping, img_height, img_width):
     #X_train = pd.concat(X_train_list)
 
     for idx in range(num_images):
-        print("Deserializing for image: ", idx)
         temp_img = hotelid_image_mapping.at[idx, 'image_serialized']
         temp_deserialized_img = np.frombuffer(temp_img, dtype='uint8').reshape(img_height, img_width, 3)
-        X_train.append(np.array(temp_deserialized_img))
+        X_train.append(preprocess_input(np.array(temp_deserialized_img)).astype('float16'))
+        #after deserizlization of each image, drop the serialized image to release memory
         hotelid_image_mapping.drop(index=idx, inplace=True)
 
     X_train = np.asarray(X_train, dtype='float16')
@@ -119,7 +110,7 @@ def resnet50_model(num_classes):
     :return:
     """
     model = ResNet50(weights='imagenet', pooling='avg', include_top=False)
-    x = Dropout(0.5)(model.output)
+    x = Dropout(0.3)(model.output)
     x = Dense(num_classes, activation='softmax')(x)
     model = Model(model.input, x)
     

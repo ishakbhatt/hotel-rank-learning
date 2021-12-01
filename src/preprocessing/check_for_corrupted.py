@@ -18,7 +18,7 @@ for i in range(num_classes):
             try:
                 img = Image.open(os.path.join(get_train_exterior_path(), star_folder, filename)) # open the image file
                 img.verify() # verify that it is, in fact an image
-            except (IOError, SyntaxError) as e:
+            except (IOError, SyntaxError):
                 corrupted_filenames.append(filename)
                 print('Bad file:', filename) # print out the names of corrupt files
     csv_filename = star_folder + ".csv"

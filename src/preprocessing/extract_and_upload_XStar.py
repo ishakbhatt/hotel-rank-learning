@@ -1,6 +1,5 @@
 import os
 import csv
-import shutil
 import requests
 #from src.navigation import get_train_path
 
