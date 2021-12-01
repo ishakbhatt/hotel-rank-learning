@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as pyplot
 from sklearn import metrics
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -85,7 +86,7 @@ def train_linear_model(x_train, y_train, x_test):
 def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model = DNN_model((x_train.shape[1],))
     # compile the model
-    optmz = optimizers.Adam(learning_rate=0.0001, epsilon=1e-8)
+    optmz = optimizers.Adam(learning_rate=0.0002, epsilon=1e-8)
     model.compile(optimizer=optmz, loss=tf.keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
     
     # fit the model
@@ -93,7 +94,7 @@ def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     model.build(x_train.shape)
     model.load_weights(ckpt_path)
     checkpointer = ModelCheckpoint(filepath=ckpt_path, verbose=1, save_best_only=True)
-    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=7)
+    early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, restore_best_weights=True, patience=12)
 
     history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size,  
                         callbacks=[checkpointer, early_stopping], verbose=1)
@@ -118,6 +119,20 @@ def train_DNN_model(x_train, y_train, x_test, y_test, epochs, batch_size):
     pyplot.tight_layout()
     pyplot.show()
     
+    # measure accuracy and F1 score 
+    yhat_classes = model.predict(x_test)
+    yhat_classes = np.argmax(yhat_classes,axis=1)
+           
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_test, yhat_classes)
+    print('Test Accuracy: %f' % accuracy)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_test, yhat_classes, average='weighted')
+    print('Weighted F1 score: %f' % f1)
+    # confusion matrix
+    matrix = confusion_matrix(y_test, yhat_classes)
+    print(matrix)
+    
     return model
  
 def DNN_model(input_shape):
@@ -133,7 +148,7 @@ if __name__ == "__main__":
     x, y, _ = load_metadata("hotel_meta_processed.csv")
     
     # split data into train and test
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1, random_state=123)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=123)
 
     #handling null(if any)
     x_train = np.nan_to_num(x_train)
