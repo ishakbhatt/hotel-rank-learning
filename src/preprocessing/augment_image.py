@@ -1,5 +1,6 @@
 import sys
 import os
+import random
 import numpy as np
 from PIL import Image, ImageEnhance
 import shutil
@@ -8,15 +9,14 @@ from utils import get_train_path, get_train_exterior_path, is_corrupted
 sys.path.remove("..")
 
 # augmentation
-
-def augment_examples(examples_path, temp_dir, aug_type="brightness", augment_cap=-1, enhancement=1.1):
+def augment_examples(examples_path, aug_type="brightness", aug_cap=-1, enhancement=1.1):
     examples = os.listdir(examples_path)
-    x = len(examples)
+    random.shuffle(examples)
     count = 0
     for example in examples:
         if (is_corrupted(example, os.path.basename(examples_path)[0]) == True):
             break
-        if (count == augment_cap and augment_cap != -1):
+        if (count == aug_cap and aug_cap != -1):
             break
         _, ext = os.path.splitext(example)
         if(ext):
@@ -49,35 +49,30 @@ def augment_examples(examples_path, temp_dir, aug_type="brightness", augment_cap
                 new_img = filter.enhance(enhancement)
             
             new_img_name = os.path.splitext(example)[0] + filename_addition + ".jpg"
-            new_img.save(os.path.join(temp_dir, new_img_name))
+            if new_img.mode in ("RGBA", "P"): new_img = new_img.convert("RGB")
+            new_img.save(os.path.join(examples_path, new_img_name))
             count += 1
-    if temp_dir == os.path.join(get_train_path(), "temp_5star"):
-        breakpoint()
-    c = count
+    print("Added " + str(count) + " images to class " + os.path.basename(examples_path))
 
 if __name__ == "__main__":
-    # augment 1star from 1k to 11k
-    print("Augmenting 1 star...")
-    temp_1star_path = os.path.join(get_train_path(), "temp_1star")
-    os.makedirs(temp_1star_path, exist_ok=True)
-    examples_path = os.path.join(get_train_exterior_path(), "1star")
 
-    augment_examples(examples_path, temp_1star_path, aug_type="saturate", enhancement=3)
-    augment_examples(examples_path, temp_1star_path, enhancement=0.6)
-    augment_examples(examples_path, temp_1star_path, aug_type="saturate", enhancement=1.7)
+    # set amount to augment by for each class
+    num_classes = 5
+    aug_caps = [10000, 2000, 2000, 2000, 10000]
+    for i in range(num_classes):
+        aug_cap = -1
+        if aug_caps[i] != -1:
+            aug_cap = aug_caps[i] / 10
 
-    # augment 5star from 16K to 26K
-    print("Augmenting 5 star...")
-    temp_5star_path = os.path.join(get_train_path(), "temp_5star")
-    os.makedirs(temp_5star_path, exist_ok=True)
-    examples_path = os.path.join(get_train_exterior_path(), "5star")
-    #augment_examples(examples_path, temp_5star_path, aug_type="horizontal_flip")
-    augment_examples(examples_path, temp_5star_path, aug_type="sharpness", enhancement=3)
-    #augment_examples(examples_path, temp_1star_path, aug_type="horizontal_flip")
-    augment_examples(examples_path, temp_5star_path, aug_type="contrast", enhancement=0.4)
-    augment_examples(examples_path, temp_5star_path, enhancement=1.4)
-    augment_examples(examples_path, temp_5star_path, aug_type="saturate", enhancement=3)
-    augment_examples(examples_path, temp_5star_path, aug_type="contrast", enhancement=1.3)
-    augment_examples(examples_path, temp_5star_path, aug_type="sharpness", enhancement=1.4)
-    augment_examples(examples_path, temp_5star_path, enhancement=0.5)
-    augment_examples(examples_path, temp_5star_path, aug_type="saturate", enhancement=1.6)
+        examples_path = os.path.join(get_train_exterior_path(), str(i+1) + "star")
+        print("Augmenting ", str(i+1), " star...")
+        augment_examples(examples_path, aug_type="saturate", enhancement=1.5, aug_cap=aug_cap)
+        augment_examples(examples_path, enhancement=0.6, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="sharpness", enhancement=1.4, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="contrast", enhancement=0.4, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="horizontal_flip", aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="saturate", enhancement=2, aug_cap=aug_cap)
+        augment_examples(examples_path, enhancement=0.4, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="sharpness", enhancement=1.2, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="sharpness", enhancement=1.3, aug_cap=aug_cap)
+        augment_examples(examples_path, aug_type="contrast", enhancement=0.5, aug_cap=aug_cap)
