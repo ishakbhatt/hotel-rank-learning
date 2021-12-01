@@ -27,7 +27,7 @@ We implemented our own (naive) data augmentation method which can be found [here
 
 Note that this is a naive implementation since the amount of memory used would increase by saving more images in the dataset directories. For a future iteration, we would like to reduce memory usage by moving the data augmentation step online using the ImageDataGenerator API rather than doing data augmentation offline using our own data augmentation method.
 
-To augment the data, run `augment_image.py` from `src/preprocessing`. The images will get saved directly in the class directories in `data/train/exterior/`. You can run `ls | wc -l` to verify that the classes increased by the values specified in the `aug_caps` list.  
+To augment the data, run `augment_image.py` from `src/preprocessing`. The images will get saved directly in the class directories in `data/train/exterior/`. You can run `ls | wc -l` in each of the class directories to verify that the classes increased by the values specified in the `aug_caps` list.  
 
 ## Training
 We developed two supervised learning models that apply the ResNet-50 architecture on a labeled dataset consisting of hotel images from each of the five star categories. Both models classify hotels into their respective ratings using **exterior image data**. We also developed a DNN that uses two layers with LeakyReLU activation functions and softmax regression as the last layer. We then developed a combined model that uses weights from our DNN and CNN to learn from both structured and unstructured data to correctly predict the hotel star rating.   
