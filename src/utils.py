@@ -14,29 +14,29 @@ def load_image_uri(train_path):
     labels = os.listdir(train_path)
     labels = [p for p in labels if p.endswith('star')]
     image_uri = pd.DataFrame(columns=['hotelid', 'image_uri', 'star'])
-    global parallel_load_uri
-    img_uri_nested_list = []
+    #global parallel_load_uri
+    #img_uri_nested_list = []
     for label in labels:
         label_path = os.path.join(train_path, label)
         image_filenames = os.listdir(label_path)
         star = label[0] # first char of '5star' is 5
         star_class_indices = str(int(star) - 1) #star{1,2,3,4,5}-> class_indices {0,1,2,3,4}
-        def parallel_load_uri(image_filename):
-            nonlocal image_uri
-        #for image_filename in image_filenames:
+        #def parallel_load_uri(image_filename):
+        #    nonlocal image_uri
+        for image_filename in image_filenames:
             if(is_corrupted(image_filename, star) == False):
                 print("loading image uri for ", image_filename, " for star ", star, "...")
                 hotelid = int(image_filename[0 : image_filename.find('_')])
-                return image_uri.append({'hotelid':hotelid, 'image_uri':os.path.join(label_path, image_filename), 'star':star_class_indices}, ignore_index=True)
+                image_uri.append({'hotelid':hotelid, 'image_uri':os.path.join(label_path, image_filename), 'star':star_class_indices}, ignore_index=True)
             else:
                 print("Skipping corrupted file ", image_filename, " from ", star, " stars...")
     
-        pool = Pool(cpu_count())
-        image_uri_list = pool.map(parallel_load_uri, image_filenames)
-        img_uri_nested_list.append(image_uri_list)
+        #pool = Pool(cpu_count())
+        #image_uri_list = pool.map(parallel_load_uri, image_filenames)
+        #img_uri_nested_list.append(image_uri_list)
 
-    image_uri_list = [item for sublist in img_uri_nested_list for item in sublist]
-    image_uri = pd.concat(image_uri_list)
+    #image_uri_list = [item for sublist in img_uri_nested_list for item in sublist]
+    #image_uri = pd.concat(image_uri_list)
 
     # shuffle image orders
     image_uri = image_uri.sample(frac=1)

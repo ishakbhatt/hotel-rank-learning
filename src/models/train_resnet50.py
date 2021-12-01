@@ -15,7 +15,6 @@ from tensorflow.keras.applications.resnet import ResNet50
 from PIL import ImageFile
 sys.path.append("..")
 from utils import get_train_exterior_path, get_models_path, get_data_path, is_corrupted
-#from preprocessing.augment_image import augment_data
 sys.path.remove("..")
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -91,19 +90,25 @@ def deserialize_image(hotelid_image_mapping, img_height, img_width):
     # image deserialization
     print("image deserialization...")
     num_images = hotelid_image_mapping['image_serialized'].count()
-    def parallel_deserialization(idx):
+    #def parallel_deserialization(idx):
+    #    print("Deserializing for image: ", idx)
+    #    temp_img = hotelid_image_mapping.at[idx, 'image_serialized']
+    #    temp_deserialized_img = np.frombuffer(temp_img, dtype='uint8').reshape(img_height, img_width, 3)
+    #    X_train.append(np.array(temp_deserialized_img))
+    #    hotelid_image_mapping.drop(index=idx, inplace=True)
+    #    return X_train
+
+    # Distribute deserialization across cores
+    #pool = Pool(cpu_count())
+    #X_train_list = pool.map(parallel_deserialization, range(num_images))
+    #X_train = pd.concat(X_train_list)
+
+    for idx in range(num_images):
         print("Deserializing for image: ", idx)
         temp_img = hotelid_image_mapping.at[idx, 'image_serialized']
         temp_deserialized_img = np.frombuffer(temp_img, dtype='uint8').reshape(img_height, img_width, 3)
         X_train.append(np.array(temp_deserialized_img))
         hotelid_image_mapping.drop(index=idx, inplace=True)
-        return X_train
-
-    # Distribute deserialization across cores
-    from multiprocessing import Pool, cpu_count
-    pool = Pool(cpu_count())
-    X_train_list = pool.map(parallel_deserialization, range(num_images))
-    X_train = pd.concat(X_train_list)
 
     X_train = np.asarray(X_train, dtype='float16')
     return X_train, y_train
@@ -115,7 +120,6 @@ def resnet50_model(num_classes):
     """
     model = ResNet50(weights='imagenet', pooling='avg', include_top=False)
     x = Dropout(0.5)(model.output)
-    #x = Dense(num_classes, kernel_regularizer='l2')(x)
     x = Dense(num_classes, activation='softmax')(x)
     model = Model(model.input, x)
     
