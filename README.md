@@ -23,7 +23,7 @@ To check for corrupted images and note down in a CSV, run `check_for_corrupted.p
 To remove corrupted images, run `remove_corrupted.py` from `src/preprocessing`.
 
 ### Data Augmentation  
-We implemented our own (naive) data augmentation method which can be found [here](https://github.com/ishakbhatt/hotel-rank-learning/blob/main/src/preprocessing/augment_image.py). To augment any of the five classes by a certain amount, the respective value in the list on line 60(https://github.com/ishakbhatt/hotel-rank-learning/blob/main/src/preprocessing/augment_image.py#L60) can be changed. For example, to increase the number of images for three classes (2, 3, 4 stars) by 2000 and for two classes (1 and 5 stars) by 10,000, `aug_caps` would be set to `[10000, 2000, 2000, 2000, 10000]`.  
+We implemented our own (naive) data augmentation method which can be found [here](https://github.com/ishakbhatt/hotel-rank-learning/blob/main/src/preprocessing/augment_image.py). To augment any of the five classes by a certain amount, the respective value in the list on [line 60](https://github.com/ishakbhatt/hotel-rank-learning/blob/main/src/preprocessing/augment_image.py#L60) can be changed. For example, to increase the number of images for three classes (2, 3, 4 stars) by 2000 and for two classes (1 and 5 stars) by 10,000, `aug_caps` would be set to `[10000, 2000, 2000, 2000, 10000]`.  
 
 Note that this is a naive implementation since the amount of memory used would increase by saving more images in the dataset directories. For a future iteration, we would like to reduce memory usage by moving the data augmentation step online using the ImageDataGenerator API rather than doing data augmentation offline using our own data augmentation method.
 
