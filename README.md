@@ -59,7 +59,7 @@ The model (`train_full_model.py`) uses weights from `train_structured.py` and `t
 ## Analysis  
 
 ### Class Distribution  
-Run `class_dist.py` from `src/preprocessing`. The class distribution (without augmentation) can be found in `data/data_analysis`.
+Run `class_dist.py` from `src/preprocessing`. The class distribution can be found in `data/data_analysis`.
 
 ### Evaluation Metrics  
 The metrics for `train_images.py` and `train_full_model.py` can be found in `data/analysis/CNN` and `data/analysis/Combined`, respectively. We ran `train_images.py` three different times on images for 26,000 hotels:   
@@ -71,7 +71,7 @@ The metrics for `train_images.py` and `train_full_model.py` can be found in `dat
 `pillow`    
 `numpy`    
 `tensorflow`    
-`shutil`
+`shutil`  
 `multiprocessing`  
 `time`  
 `sys`      
@@ -81,5 +81,5 @@ The metrics for `train_images.py` and `train_full_model.py` can be found in `dat
 `zipfile`  
 `os`  
 `matplotlib`  
-`sklearn`
+`sklearn`  
 `pandas`
